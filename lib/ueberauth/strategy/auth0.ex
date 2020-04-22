@@ -161,8 +161,16 @@ defmodule Ueberauth.Strategy.Auth0 do
       location: user["locale"],
       first_name: user["given_name"],
       last_name: user["family_name"],
-      image: user["picture"]
+      image: user["picture"],
+      urls: read_claims(user)
     }
+  end
+
+  defp read_claims(user) do
+    user
+    |> Enum.map(fn {key, value} -> {URI.parse(key), value} end)
+    |> Enum.filter(fn {%{host: host}, _value} -> not is_nil(host) end)
+    |> Enum.into(%{}, fn {key, value} -> {URI.to_string(key), value} end)
   end
 
   defp with_optional(opts, key, conn) do
